@@ -3,6 +3,8 @@ name = "rebalance"
 version = "0.1.0"
 dependencies = [
  "csv 1.0.0-beta.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "tabwriter 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -36,8 +38,100 @@ dependencies = [
 ]
 
 [[package]]
+name = "num"
+version = "0.1.37"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-bigint 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-complex 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-integer 0.1.34 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-iter 0.1.33 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-rational 0.1.36 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+]
+
+[[package]]
+name = "num-bigint"
+version = "0.1.37"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-integer 0.1.34 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.1.37"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "num-integer"
+version = "0.1.34"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+]
+
+[[package]]
+name = "num-iter"
+version = "0.1.33"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-integer 0.1.34 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.1.36"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+dependencies = [
+ "num-bigint 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-integer 0.1.34 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)",
+ "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.1.37"
+source = "git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d#ef752e46877dc163ec28ddcf4d71558c264bb78d"
+
+[[package]]
+name = "rand"
+version = "0.3.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.23 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "rustc-serialize"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "serde"
 version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "tabwriter"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "unicode-width 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "unicode-width"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
@@ -45,4 +139,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum csv-core 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "ed4919aaefb12f555bb4e34aa6415b5db7e20e01e517427f13c2bde286ae9b53"
 "checksum libc 0.2.23 (registry+https://github.com/rust-lang/crates.io-index)" = "e7eb6b826bfc1fdea7935d46556250d1799b7fe2d9f7951071f4291710665e3e"
 "checksum memchr 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1dbccc0e46f1ea47b9f17e6d67c5a96bd27030519c519c9c91327e31275a47b4"
+"checksum num 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-bigint 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-complex 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-integer 0.1.34 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-iter 0.1.33 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-rational 0.1.36 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum num-traits 0.1.37 (git+https://github.com/rust-num/num?rev=ef752e46877dc163ec28ddcf4d71558c264bb78d)" = "<none>"
+"checksum rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)" = "022e0636ec2519ddae48154b028864bdce4eaf7d35226ab8e65c611be97b189d"
+"checksum rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)" = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 "checksum serde 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)" = "c2f530d36fb84ec48fb7146936881f026cdbf4892028835fd9398475f82c1bb4"
+"checksum tabwriter 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3b7810162bc0a2eb2dc9a9bfd16ddb2d1f6022df3236d1478937bfadcb12385e"
+"checksum unicode-width 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "bf3a113775714a22dcb774d8ea3655c53a32debae63a063acc00a91cc586245f"

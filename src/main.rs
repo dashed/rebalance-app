@@ -1,33 +1,33 @@
 extern crate csv;
+extern crate num;
+extern crate tabwriter;
+
+mod rebalance;
 
 // rust imports
 
 use std::collections::HashMap;
 
-struct Percent(f64);
-#[derive(Debug)]
-struct Value(f64);
+// local imports
 
-struct Asset {
-    value: Value,
-    target_allocation_percent: Percent
-}
-
+use rebalance::{Asset, lazy_rebalance, to_string};
 
 fn main() {
 
-    // let contents = read_file_to_string("assets/fundaccountdetails.csv");
-    // let contents = read_file_to_string("assets/targets.csv");
     let target_map = create_target_map();
 
-    let portfolio_map = create_portfolio_map(target_map);
+    let portfolio = create_portfolio(target_map);
 
-    println!("Hello, world!");
+    let balanced_portfolio = lazy_rebalance(100.0, portfolio);
+
+    println!("{}", to_string(balanced_portfolio));
 }
+
+struct Percent(f64);
 
 fn create_target_map() -> HashMap<String, Percent> {
 
-    let mut reader = csv::Reader::from_path("assets/targets.csv").unwrap();
+    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_path("assets/targets.csv").unwrap();
 
     let mut target_map = HashMap::new();
 
@@ -56,11 +56,11 @@ fn create_target_map() -> HashMap<String, Percent> {
     target_map
 }
 
-fn create_portfolio_map(target_map: HashMap<String, Percent>) -> HashMap<String, Asset> {
+fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
 
-    let mut reader = csv::Reader::from_path("assets/fundaccountdetails.csv").unwrap();
+    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_path("assets/fundaccountdetails.csv").unwrap();
 
-    let mut portfolio_map = HashMap::new();
+    let mut portfolio = vec![];
 
     for result in reader.records() {
 
@@ -77,23 +77,26 @@ fn create_portfolio_map(target_map: HashMap<String, Percent>) -> HashMap<String,
                 .skip(1)
                 .collect();
 
-            Value(value.parse::<f64>().unwrap())
+            value.parse::<f64>().unwrap()
         };
 
         match target_map.get(&asset_name) {
             None => {},
             Some(&Percent(target_allocation_percent)) => {
 
-                let asset = Asset {
-                    value: value,
-                    target_allocation_percent: Percent(target_allocation_percent)
+                let target_allocation_percent = if target_allocation_percent > 1.0 {
+                    target_allocation_percent / 100.0
+                } else {
+                    target_allocation_percent
                 };
 
-                portfolio_map.insert(asset_name, asset);
+                let asset = Asset::new(asset_name, target_allocation_percent, value);
+
+                portfolio.push(asset);
             }
         }
 
     }
 
-    portfolio_map
+    portfolio
 }
