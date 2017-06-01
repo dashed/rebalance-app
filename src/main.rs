@@ -7,6 +7,7 @@ mod rebalance;
 // rust imports
 
 use std::collections::HashMap;
+use std::env::args;
 
 // local imports
 
@@ -14,11 +15,20 @@ use rebalance::{Asset, lazy_rebalance, to_string};
 
 fn main() {
 
+    let contribution_amount = {
+        let mut args = args();
+        args.next();
+        let first_arg: String = args.next().expect("No contribution amount entered.");
+        first_arg.parse::<f64>().unwrap()
+    };
+
+    println!("Contributing: {}\n", format!("{:.*}", 2, contribution_amount));
+
     let target_map = create_target_map();
 
     let portfolio = create_portfolio(target_map);
 
-    let balanced_portfolio = lazy_rebalance(100.0, portfolio);
+    let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
 
     println!("{}", to_string(balanced_portfolio));
 }
