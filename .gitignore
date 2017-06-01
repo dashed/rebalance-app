@@ -1,3 +1,4 @@
 assets/
 target/
+etc/
 **/*.rs.bk
