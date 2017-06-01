@@ -1,0 +1,7 @@
+[package]
+name = "rebalance"
+version = "0.1.0"
+authors = ["Alberto Leal <mailforalberto@gmail.com>"]
+
+[dependencies]
+csv = "1.0.0-beta.3"
