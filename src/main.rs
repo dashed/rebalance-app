@@ -22,7 +22,8 @@ fn main() {
         first_arg.parse::<f64>().unwrap()
     };
 
-    println!("Contributing: {}\n", format!("{:.*}", 2, contribution_amount));
+    println!("Contributing: {}\n",
+             format!("{:.*}", 2, contribution_amount));
 
     let target_map = create_target_map();
 
@@ -37,7 +38,8 @@ struct Percent(f64);
 
 fn create_target_map() -> HashMap<String, Percent> {
 
-    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_path("assets/targets.csv").unwrap();
+    let mut reader =
+        csv::ReaderBuilder::new().has_headers(false).from_path("assets/targets.csv").unwrap();
 
     let mut target_map = HashMap::new();
 
@@ -68,7 +70,10 @@ fn create_target_map() -> HashMap<String, Percent> {
 
 fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
 
-    let mut reader = csv::ReaderBuilder::new().has_headers(false).from_path("assets/fundaccountdetails.csv").unwrap();
+    let mut reader = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_path("assets/fundaccountdetails.csv")
+        .unwrap();
 
     let mut portfolio = vec![];
 
@@ -79,8 +84,7 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
         let asset_name = record.get(0).unwrap().trim().to_string();
 
         let value = {
-            let value: String = record
-                .get(3)
+            let value: String = record.get(3)
                 .unwrap()
                 .trim()
                 .chars()
@@ -91,7 +95,7 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
         };
 
         match target_map.get(&asset_name) {
-            None => {},
+            None => {}
             Some(&Percent(target_allocation_percent)) => {
 
                 let target_allocation_percent = if target_allocation_percent > 1.0 {
