@@ -174,7 +174,7 @@ fn to_f64(fraction: &BigRational) -> f64 {
 
 pub fn to_string(balanced_portfolio: Vec<Asset>) -> String {
 
-    let mut buf = "Asset name\tAsset value\t Target allocation\tTarget value\tAmount to buy/sell".to_string();
+    let mut buf = "Asset name\tAsset value\tTarget allocation\tTarget value\tAmount to buy/sell".to_string();
 
     for asset in balanced_portfolio {
 
