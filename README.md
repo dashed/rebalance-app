@@ -5,6 +5,8 @@ rebalance
 
 ![](./screenshot.png)
 
+**Rationale:** Rather than rebalance your portfolio internally, add/remove money such that your asset targets % are archieved as close as possible.
+
 Based on:
 
 - http://optimalrebalancing.tk/
