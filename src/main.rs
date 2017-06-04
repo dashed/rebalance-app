@@ -75,7 +75,7 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
         .from_path("assets/fundaccountdetails.csv")
         .unwrap();
 
-    let mut portfolio = vec![];
+    let mut portfolio_map: HashMap<String, Asset> = HashMap::new();
 
     for result in reader.records() {
 
@@ -98,19 +98,48 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
             None => {}
             Some(&Percent(target_allocation_percent)) => {
 
-                let target_allocation_percent = if target_allocation_percent > 1.0 {
-                    target_allocation_percent / 100.0
-                } else {
-                    target_allocation_percent
-                };
+                let target_allocation_percent = adjust_target_allocation_percent(target_allocation_percent);
 
-                let asset = Asset::new(asset_name, target_allocation_percent, value);
+                let asset = Asset::new(asset_name.clone(), target_allocation_percent, value);
 
-                portfolio.push(asset);
+                portfolio_map.insert(asset_name, asset);
             }
         }
 
     }
 
+    for asset_name in target_map.keys() {
+
+        if portfolio_map.contains_key(asset_name) {
+            continue;
+        }
+
+        let &Percent(target_allocation_percent) = target_map.get(asset_name).unwrap();
+
+        let target_allocation_percent = adjust_target_allocation_percent(target_allocation_percent);
+
+        let asset = Asset::new(asset_name.clone(), target_allocation_percent, 0.0);
+
+        portfolio_map.insert(asset_name.to_string(), asset);
+    }
+
+    let mut portfolio = vec![];
+
+    for (_asset_name, asset) in portfolio_map {
+
+        portfolio.push(asset);
+    }
+
     portfolio
+}
+
+
+fn adjust_target_allocation_percent(target_allocation_percent: f64) -> f64 {
+
+    if target_allocation_percent > 1.0 {
+        target_allocation_percent / 100.0
+    } else {
+        target_allocation_percent
+    }
+
 }
