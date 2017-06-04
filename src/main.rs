@@ -99,7 +99,7 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
             Some(&Percent(target_allocation_percent)) => {
 
                 let target_allocation_percent =
-                    adjust_target_allocation_percent(target_allocation_percent);
+                    adjust_target_allocation_percent(target_allocation_percent, target_map.len() > 1);
 
                 let asset = Asset::new(asset_name.clone(), target_allocation_percent, value);
 
@@ -117,7 +117,7 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
 
         let &Percent(target_allocation_percent) = target_map.get(asset_name).unwrap();
 
-        let target_allocation_percent = adjust_target_allocation_percent(target_allocation_percent);
+        let target_allocation_percent = adjust_target_allocation_percent(target_allocation_percent, target_map.len() > 1);
 
         let asset = Asset::new(asset_name.clone(), target_allocation_percent, 0.0);
 
@@ -135,9 +135,9 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
 }
 
 
-fn adjust_target_allocation_percent(target_allocation_percent: f64) -> f64 {
+fn adjust_target_allocation_percent(target_allocation_percent: f64, has_more_than_one_target: bool) -> f64 {
 
-    if target_allocation_percent > 1.0 {
+    if target_allocation_percent >= 1.0 && has_more_than_one_target {
         target_allocation_percent / 100.0
     } else {
         target_allocation_percent
