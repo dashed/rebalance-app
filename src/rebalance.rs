@@ -62,8 +62,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
     let amount_to_contribute = BigRational::from_f64(amount_to_contribute).unwrap();
 
     let portfolio_total: BigRational = assets.iter()
-        .fold(BigRational::zero(),
-              |total, ref asset| total + &asset.value);
+        .fold(BigRational::zero(), |total, ref asset| total + &asset.value);
 
     let total: BigRational = &portfolio_total + &amount_to_contribute;
 
@@ -179,7 +178,8 @@ fn to_f64(fraction: &BigRational) -> f64 {
 
 pub fn to_string(balanced_portfolio: Vec<Asset>) -> String {
 
-    let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation %\tTarget value\tAmount to buy/sell"
+    let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation \
+                   %\tTarget value\tAmount to buy/sell"
         .to_string();
 
     for asset in balanced_portfolio {
@@ -201,13 +201,14 @@ pub fn to_string(balanced_portfolio: Vec<Asset>) -> String {
 
         let target_value = &asset.target_value.unwrap();
 
-        let final_portion = (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
+        let final_portion = (&asset.value + &delta) * &asset.target_allocation_percent /
+                            target_value;
 
         let line = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}",
                            asset.name,
                            format_f64(to_f64(&asset.value), 2),
-                           format_f64(actual_allocation*100.00, 3),
-                           format_f64(to_f64(&final_portion)*100.00, 3),
+                           format_f64(actual_allocation * 100.00, 3),
+                           format_f64(to_f64(&final_portion) * 100.00, 3),
                            target_allocation_percent,
                            format_f64(to_f64(&target_value), 2),
                            format_f64(to_f64(&delta), 2));

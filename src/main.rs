@@ -98,7 +98,8 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
             None => {}
             Some(&Percent(target_allocation_percent)) => {
 
-                let target_allocation_percent = adjust_target_allocation_percent(target_allocation_percent);
+                let target_allocation_percent =
+                    adjust_target_allocation_percent(target_allocation_percent);
 
                 let asset = Asset::new(asset_name.clone(), target_allocation_percent, value);
 
