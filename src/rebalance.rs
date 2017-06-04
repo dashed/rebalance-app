@@ -209,7 +209,7 @@ pub fn to_string(balanced_portfolio: Vec<Asset>) -> String {
                            format_f64(to_f64(&asset.value), 2),
                            format_f64(actual_allocation * 100.00, 3),
                            format_f64(to_f64(&final_portion) * 100.00, 3),
-                           target_allocation_percent,
+                           format_f64(target_allocation_percent, 3),
                            format_f64(to_f64(&target_value), 2),
                            format_f64(to_f64(&delta), 2));
 
