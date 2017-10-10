@@ -1,5 +1,5 @@
-rebalance
-=========
+rebalance-app
+=============
 
 > Optimal lazy portfolio rebalancing calculator (in Rust)
 
