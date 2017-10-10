@@ -70,6 +70,8 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let target_value = &total * &asset.target_allocation_percent;
 
+        // equivalent to: (value - target_value) / target_value
+        // see: https://en.wikipedia.org/wiki/Approximation_error#Formal_Definition
         let deviation = (&asset.value / &target_value) - BigRational::one();
 
         asset.actual_allocation = &asset.value / &portfolio_total;
@@ -89,6 +91,10 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
     });
 
     let (__k, index_to_stop): (BigRational, usize) = {
+
+        // since deviations are approx. errors, original author wanted to 'minimize' approx. errors
+        // of assets with 'lowest' approx. errors. in other words, assets with lowest approx. error
+        // gets first dibs of the contribution first.
 
         // TODO: wtf is this
         let mut __h: BigRational = BigRational::zero();
@@ -179,7 +185,7 @@ fn to_f64(fraction: &BigRational) -> f64 {
 pub fn to_string(balanced_portfolio: Vec<Asset>) -> String {
 
     let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation \
-                   %\tTarget value\tAmount to buy/sell"
+                   %\tTarget value\t$ to buy/sell"
         .to_string();
 
     for asset in balanced_portfolio {
