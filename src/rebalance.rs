@@ -71,8 +71,6 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         // see: https://en.wikipedia.org/wiki/Approximation_error#Formal_Definition
         let deviation = (&asset.value / &target_value) - BigRational::one();
 
-        println!("{}\t{}", asset.name, to_f64(&deviation));
-
         asset.actual_allocation = &asset.value / &portfolio_total;
         asset.target_value = Some(target_value);
         asset.deviation = Some(deviation);

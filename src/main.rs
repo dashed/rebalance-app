@@ -11,7 +11,7 @@ use std::env::args;
 
 // local imports
 
-use rebalance::{lazy_rebalance, to_debug_string, to_string, Asset};
+use rebalance::{lazy_rebalance, to_string, Asset};
 
 fn main() {
     let contribution_amount = {
@@ -33,8 +33,6 @@ fn main() {
     let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
 
     println!("{}", to_string(&balanced_portfolio));
-
-    println!("{}", to_debug_string(&balanced_portfolio));
 }
 
 struct Percent(f64);
