@@ -256,7 +256,12 @@ pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
                    %\tTarget value\t$ to buy/sell"
         .to_string();
 
-    let mut total_contribution = 0.0;
+    let mut total_asset_value = BigRational::zero();
+    let mut total_current_holdings = BigRational::zero();
+    let mut total_new_holdings = BigRational::zero();
+    let mut total_target_allocation = BigRational::zero();
+    let mut total_target_value = BigRational::zero();
+    let mut total_contribution = BigRational::zero();
 
     for asset in balanced_portfolio {
         let delta = match asset.delta {
@@ -264,30 +269,41 @@ pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
             None => BigRational::zero(),
         };
 
-        let target_allocation_percent = to_f64(&asset.target_allocation_percent);
 
-        let target_allocation_percent = if target_allocation_percent <= 1.0 {
-            target_allocation_percent * 100.0
-        } else {
-            target_allocation_percent
-        };
+        let target_allocation_percent =
+            if asset.target_allocation_percent <= BigRational::from_f64(1.0).unwrap() {
+                asset.target_allocation_percent.clone() * BigRational::from_f64(100.00).unwrap()
+            } else {
+                asset.target_allocation_percent.clone()
+            };
 
-        let actual_allocation = to_f64(&asset.actual_allocation);
+        let actual_allocation = &asset.actual_allocation * BigRational::from_f64(100.00).unwrap();
 
         let target_value = &(asset.target_value.clone()).unwrap();
 
         let final_portion =
             (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
 
-        total_contribution += to_f64(&delta);
+        let final_portion = &final_portion * BigRational::from_f64(100.00).unwrap();
+
+        // totals
+
+        total_asset_value = total_asset_value + &asset.value;
+        total_current_holdings = total_current_holdings + &actual_allocation;
+        total_new_holdings = total_new_holdings + &final_portion;
+        total_target_allocation = total_target_allocation + &target_allocation_percent;
+        total_target_value = total_target_value + target_value;
+        total_contribution = total_contribution + &delta;
+
+        // generate line
 
         let line = format!(
             "{}\t{}\t{}\t{}\t{}\t{}\t{}",
             asset.name,
             format_f64(to_f64(&asset.value), 2),
-            format_f64(actual_allocation * 100.00, 3),
-            format_f64(to_f64(&final_portion) * 100.00, 3),
-            format_f64(target_allocation_percent, 3),
+            format_f64(to_f64(&actual_allocation), 3),
+            format_f64(to_f64(&final_portion), 3),
+            format_f64(to_f64(&target_allocation_percent), 3),
             format_f64(to_f64(&target_value), 2),
             format_f64(to_f64(&delta), 2)
         );
@@ -296,8 +312,13 @@ pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
     }
 
     let total_line = format!(
-        "Total\t \t \t \t \t \t{}",
-        format_f64(total_contribution, 2)
+        "Total\t{}\t{}\t{}\t{}\t{}\t{}",
+        format_f64(to_f64(&total_asset_value), 2),
+        format_f64(to_f64(&total_current_holdings), 3),
+        format_f64(to_f64(&total_new_holdings), 3),
+        format_f64(to_f64(&total_target_allocation), 3),
+        format_f64(to_f64(&total_target_value), 2),
+        format_f64(to_f64(&total_contribution), 2)
     );
 
     buf = format!("{}\n{}", buf, total_line);
