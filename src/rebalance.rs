@@ -157,15 +157,9 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let target_value = asset.target_value.as_ref().unwrap();
 
-        // TODO: todo-note
-        // println!("{}: target value: {}", asset.name, to_f64(&target_value));
-
         let deviation = asset.deviation.as_ref().unwrap();
 
         let delta = target_value * (&__k - deviation);
-
-        // TODO: todo-note
-        // println!("{}: delta: {}", asset.name, to_f64(&delta));
 
         asset.delta = Some(delta);
     }
@@ -180,82 +174,82 @@ fn to_f64(fraction: &BigRational) -> f64 {
     numerator.to_f64().unwrap() / denominator.to_f64().unwrap()
 }
 
-pub fn to_debug_string(balanced_portfolio: &Vec<Asset>) -> String {
-    let mut buf = "ASSET NAME\tTARGET\tVALUE".to_string();
+// pub fn to_debug_string(balanced_portfolio: &Vec<Asset>) -> String {
+//     let mut buf = "ASSET NAME\tTARGET\tVALUE".to_string();
 
-    for asset in balanced_portfolio {
-        // let delta = match asset.delta {
-        //     Some(ref delta) => delta.clone(),
-        //     None => BigRational::zero(),
-        // };
+//     for asset in balanced_portfolio {
+//         // let delta = match asset.delta {
+//         //     Some(ref delta) => delta.clone(),
+//         //     None => BigRational::zero(),
+//         // };
 
-        let target_allocation_percent = to_f64(&asset.target_allocation_percent);
+//         let target_allocation_percent = to_f64(&asset.target_allocation_percent);
 
-        let target_allocation_percent = if target_allocation_percent <= 1.0 {
-            target_allocation_percent * 100.0
-        } else {
-            target_allocation_percent
-        };
+//         let target_allocation_percent = if target_allocation_percent <= 1.0 {
+//             target_allocation_percent * 100.0
+//         } else {
+//             target_allocation_percent
+//         };
 
-        // let actual_allocation = to_f64(&asset.actual_allocation);
+//         // let actual_allocation = to_f64(&asset.actual_allocation);
 
-        // let target_value = &(asset.target_value.clone()).unwrap();
+//         // let target_value = &(asset.target_value.clone()).unwrap();
 
-        // let final_portion =
-        //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
-
-
-        let line = format!(
-            "{}\t{}%\t{}",
-            asset.name,
-            format_f64(target_allocation_percent, 3),
-            format_f64(to_f64(&asset.value), 2)
-        );
-
-        buf = format!("{}\n{}", buf, line);
-    }
-
-    for asset in balanced_portfolio {
-        // let delta = match asset.delta {
-        //     Some(ref delta) => delta.clone(),
-        //     None => BigRational::zero(),
-        // };
-
-        let target_allocation_percent = to_f64(&asset.target_allocation_percent);
-
-        let target_allocation_percent = if target_allocation_percent <= 1.0 {
-            target_allocation_percent * 100.0
-        } else {
-            target_allocation_percent
-        };
-
-        // let actual_allocation = to_f64(&asset.actual_allocation);
-
-        // let target_value = &(asset.target_value.clone()).unwrap();
-
-        // let final_portion =
-        //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
+//         // let final_portion =
+//         //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
 
 
-        let line = format!(
-            "list.push(new Asset(1, `{}`, {}/100, {}));",
-            asset.name,
-            format_f64(target_allocation_percent, 3),
-            format_f64(to_f64(&asset.value), 2)
-        );
+//         let line = format!(
+//             "{}\t{}%\t{}",
+//             asset.name,
+//             format_f64(target_allocation_percent, 3),
+//             format_f64(to_f64(&asset.value), 2)
+//         );
+
+//         buf = format!("{}\n{}", buf, line);
+//     }
+
+//     for asset in balanced_portfolio {
+//         // let delta = match asset.delta {
+//         //     Some(ref delta) => delta.clone(),
+//         //     None => BigRational::zero(),
+//         // };
+
+//         let target_allocation_percent = to_f64(&asset.target_allocation_percent);
+
+//         let target_allocation_percent = if target_allocation_percent <= 1.0 {
+//             target_allocation_percent * 100.0
+//         } else {
+//             target_allocation_percent
+//         };
+
+//         // let actual_allocation = to_f64(&asset.actual_allocation);
+
+//         // let target_value = &(asset.target_value.clone()).unwrap();
+
+//         // let final_portion =
+//         //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
+
+
+//         let line = format!(
+//             "list.push(new Asset(1, `{}`, {}/100, {}));",
+//             asset.name,
+//             format_f64(target_allocation_percent, 3),
+//             format_f64(to_f64(&asset.value), 2)
+//         );
 
 
 
-        buf = format!("{}\n{}", buf, line);
-    }
+//         buf = format!("{}\n{}", buf, line);
+//     }
 
-    let mut tw = TabWriter::new(vec![]);
+//     let mut tw = TabWriter::new(vec![]);
 
-    tw.write_all(buf.as_bytes()).unwrap();
-    tw.flush().unwrap();
+//     tw.write_all(buf.as_bytes()).unwrap();
+//     tw.flush().unwrap();
 
-    String::from_utf8(tw.into_inner().unwrap()).unwrap()
-}
+//     String::from_utf8(tw.into_inner().unwrap()).unwrap()
+// }
 
 pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
     let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation \
