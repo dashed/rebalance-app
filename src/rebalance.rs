@@ -93,19 +93,20 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         // TODO: wtf is this
         let mut __h: BigRational = BigRational::zero();
+
         let mut amount_left_to_contribute: BigRational = amount_to_contribute.clone();
         // TODO: wtf is this
         let mut __k: BigRational = BigRational::zero();
-        let mut last_known_index = 0;
+
+        let mut last_known_index = None;
 
         for (index, asset) in assets.iter().enumerate() {
-            let asset: &Asset = asset;
-            last_known_index = index;
+            if amount_left_to_contribute.abs() <= BigRational::zero() {
+                break;
+            }
 
-            // TODO: remove
-            // if amount_left_to_contribute.abs() <= BigRational::zero() {
-            //     break;
-            // }
+            let asset: &Asset = asset;
+            last_known_index = Some(index);
 
             __k = asset.deviation.as_ref().unwrap().clone();
 
@@ -133,18 +134,20 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
                 println!("amount_left_to_contribute: {}", amount_left_to_contribute);
                 __k = __k + (amount_left_to_contribute / &__h);
 
-
-
-                // index_to_stop += 1;
-                break;
                 // TODO: remove
                 // amount_left_to_contribute = BigRational::zero();
+
+                break;
             }
         }
 
-        let index_to_stop = last_known_index + 1;
-
-        (__k, index_to_stop)
+        match last_known_index {
+            Some(last_known_index) => {
+                let index_to_stop = last_known_index + 1;
+                (__k, index_to_stop)
+            }
+            None => (__k, 0),
+        }
     };
 
     for (index, asset) in assets.iter_mut().enumerate() {
