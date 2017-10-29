@@ -131,7 +131,6 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
                 amount_left_to_contribute = amount_left_to_contribute - __t;
                 __k = next_least_deviation;
             } else {
-                println!("amount_left_to_contribute: {}", amount_left_to_contribute);
                 __k = __k + (amount_left_to_contribute / &__h);
 
                 // TODO: remove
