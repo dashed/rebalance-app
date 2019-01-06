@@ -6,6 +6,7 @@ authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 [dependencies]
 csv = "1.0.5"
 tabwriter = "1.1.0"
+clap = "2.32.0"
 
 [dependencies.num]
 git = "https://github.com/rust-num/num"

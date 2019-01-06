@@ -1,3 +1,4 @@
+extern crate clap;
 extern crate csv;
 extern crate num;
 extern crate tabwriter;
@@ -7,32 +8,75 @@ mod rebalance;
 // rust imports
 
 use std::collections::HashMap;
-use std::env::args;
 
 // local imports
 
+use clap::{App, AppSettings, Arg};
 use rebalance::{lazy_rebalance, to_string, Asset};
 
 fn main() {
-    let contribution_amount = {
-        let mut args = args();
-        args.next();
-        let first_arg: String = args.next().expect("No contribution amount entered.");
-        first_arg.parse::<f64>().unwrap()
-    };
+    let matches = App::new("rebalance-app")
+        .version("1.0")
+        .author("Alberto Leal (github.com/dashed) <mailforalberto@gmail.com>")
+        .about("Optimal lazy portfolio rebalancing calculator")
+        .setting(AppSettings::AllowNegativeNumbers)
+        .arg(
+            Arg::with_name("targets")
+                .short("t")
+                .long("targets")
+                .value_name("FILE")
+                .help("Sets a targets file")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("portfolio")
+                .short("p")
+                .long("portfolio")
+                .value_name("FILE")
+                .help("Sets a portfolio file")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("contribution")
+                .help("Sets the contribution amount")
+                .required(true)
+                .index(1),
+        )
+        .get_matches();
 
-    println!(
-        "Contributing: {}\n",
-        format!("{:.*}", 2, contribution_amount)
-    );
+    let path_to_targets = matches.value_of("targets").unwrap();
+    println!("Value for targets: {}", path_to_targets);
 
-    let target_map = create_target_map();
+    let path_to_portfolio = matches.value_of("portfolio").unwrap();
+    println!("Value for portfolio: {}", path_to_portfolio);
 
-    let portfolio = create_portfolio(target_map);
+    let contribution_amount: f64 = matches
+        .value_of("contribution")
+        .map(|x| x.parse::<f64>().unwrap())
+        .unwrap();
+    println!("Value for contribution: {}", contribution_amount);
 
-    let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+    // let contribution_amount = {
+    //     let mut args = args();
+    //     args.next();
+    //     let first_arg: String = args.next().expect("No contribution amount entered.");
+    //     first_arg.parse::<f64>().unwrap()
+    // };
 
-    println!("{}", to_string(&balanced_portfolio));
+    // println!(
+    //     "Contributing: {}\n",
+    //     format!("{:.*}", 2, contribution_amount)
+    // );
+
+    // let target_map = create_target_map();
+
+    // let portfolio = create_portfolio(target_map);
+
+    // let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+
+    // println!("{}", to_string(&balanced_portfolio));
 }
 
 struct Percent(f64);
