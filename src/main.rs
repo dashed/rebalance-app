@@ -122,7 +122,6 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
     portfolio
 }
 
-
 fn adjust_target_allocation_percent(target_allocation_percent: f64) -> f64 {
     target_allocation_percent / 100.0
 
