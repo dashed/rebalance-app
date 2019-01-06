@@ -22,6 +22,12 @@ To Do
 - [ ] refactor for less opinionated csv input
 - [ ] CLI using clap-rs
 
+
+Chores
+======
+
+- `cargo fmt`
+
 License
 =======
 
