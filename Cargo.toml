@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 
 [dependencies]
-csv = "1.0.0-beta.3"
-tabwriter = "1.0.3"
+csv = "1.0.5"
+tabwriter = "1.1.0"
 
 [dependencies.num]
 git = "https://github.com/rust-num/num"
