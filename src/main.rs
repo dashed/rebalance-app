@@ -188,3 +188,34 @@ fn create_portfolio(
 fn adjust_target_allocation_percent(target_allocation_percent: f64) -> f64 {
     target_allocation_percent / 100.0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example() {
+        let path_to_targets = "example/targets.csv";
+        let path_to_portfolio = "example/portfolio.csv";
+        let contribution_amount = 5000.00;
+        let portfolio_value_index = 1;
+
+        let target_map = create_target_map(path_to_targets);
+
+        let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
+
+        let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+
+        let expected = r###"
+Asset name               Asset value  Holdings %  New holdings %  Target allocation %  Target value  $ to buy/sell
+TIPS fund                6500.00      6.500       8.889           10.000               10500.00      2833.33
+Bond fund                16500.00     16.500      17.778          20.000               21000.00      2166.67
+Domestic Stock ETF       43500.00     43.500      41.429          40.000               42000.00      0.00
+International Stock ETF  33500.00     33.500      31.905          30.000               31500.00      0.00
+Total                    100000.00    100.000     100.000         100.000              105000.00     5000.00
+        "###.trim();
+
+        assert_eq!(to_string(&balanced_portfolio), expected);
+    }
+
+}
