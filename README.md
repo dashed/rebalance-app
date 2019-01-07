@@ -61,12 +61,21 @@ rebalance-app -i 3 --portfolio example/portfolio.csv --targets example/targets.c
 
 Based on:
 
-- http://optimalrebalancing.tk/
+- http://optimalrebalancing.tk
 - https://github.com/EDawg878/Portfolio-Rebalancer
 
-**NOTE:** CSV input is currently opinionated towards data exported from my investment accounts. I will eventually change this.
 
+**How it works:**
 
+Source: http://optimalrebalancing.tk/explanation.html
+
+*Step 1: Calculate the fractional deviations*
+
+Define the fractional deviation `f` of an asset to be `a/t − 1`, where `t` is the asset's target allocation and `a` is its actual portion of the portfolio. Calculate `f` for each asset. `f` will be negative for underweighted assets and positive for overweighted assets. Note that a denotes the portion relative to the final total portfolio value; this is obtained by adding the contribution amount to the original total portfolio value.
+
+*Step 2: Add money to asset(s) with lowest fractional deviation*
+
+Add money to the asset(s) with least `f` until they are tied with the asset(s) with the next-least `f`. The money added to each asset must be proportional to that asset's target allocation so that the minimum `f`'s increase in synchrony. Repeat this until the contribution amount is exhausted. If the assets are pre-sorted according to `f`, this process can be implemented such that its running time increases linearly with the number of assets.
 
 Chores
 ======
