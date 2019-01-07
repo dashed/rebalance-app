@@ -1,3 +1,4 @@
+extern crate clap;
 extern crate csv;
 extern crate num;
 extern crate tabwriter;
@@ -7,28 +8,80 @@ mod rebalance;
 // rust imports
 
 use std::collections::HashMap;
-use std::env::args;
+
+// 3rd-party imports
+
+use clap::{App, AppSettings, Arg};
 
 // local imports
 
 use rebalance::{lazy_rebalance, to_string, Asset};
 
+// app
+
 fn main() {
-    let contribution_amount = {
-        let mut args = args();
-        args.next();
-        let first_arg: String = args.next().expect("No contribution amount entered.");
-        first_arg.parse::<f64>().unwrap()
-    };
+    let matches = App::new("rebalance-app")
+        .version("1.0")
+        .author("Alberto Leal (github.com/dashed) <mailforalberto@gmail.com>")
+        .about("Optimal lazy portfolio rebalancing calculator")
+        .setting(AppSettings::AllowNegativeNumbers)
+        .arg(
+            Arg::with_name("targets")
+                .short("t")
+                .long("targets")
+                .value_name("FILE")
+                .help("Sets a targets file")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("portfolio")
+                .short("p")
+                .long("portfolio")
+                .value_name("FILE")
+                .help("Sets a portfolio file")
+                .required(true)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("portfolio_value_index")
+                .short("i")
+                .long("portfolio_value_index")
+                .value_name("INDEX")
+                .help("Sets CSV index of the portfolio value")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("contribution")
+                .help("Sets the contribution amount")
+                .required(true)
+                .index(1),
+        )
+        .get_matches();
+
+    let path_to_targets = matches.value_of("targets").unwrap();
+
+    let path_to_portfolio = matches.value_of("portfolio").unwrap();
+
+    let portfolio_value_index = matches
+        .value_of("portfolio_value_index")
+        .map(|x| x.parse::<usize>().unwrap())
+        .unwrap_or(1);
+
+    let contribution_amount: f64 = matches
+        .value_of("contribution")
+        .map(|x| x.parse::<f64>().unwrap())
+        .unwrap();
 
     println!(
         "Contributing: {}\n",
         format!("{:.*}", 2, contribution_amount)
     );
 
-    let target_map = create_target_map();
+    let target_map = create_target_map(path_to_targets);
 
-    let portfolio = create_portfolio(target_map);
+    let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
 
     let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
 
@@ -37,10 +90,10 @@ fn main() {
 
 struct Percent(f64);
 
-fn create_target_map() -> HashMap<String, Percent> {
+fn create_target_map(path_to_targets: &str) -> HashMap<String, Percent> {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
-        .from_path("assets/targets.csv")
+        .from_path(path_to_targets)
         .unwrap();
 
     let mut target_map = HashMap::new();
@@ -67,10 +120,14 @@ fn create_target_map() -> HashMap<String, Percent> {
     target_map
 }
 
-fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
+fn create_portfolio(
+    path_to_portfolio: &str,
+    portfolio_value_index: usize,
+    target_map: HashMap<String, Percent>,
+) -> Vec<Asset> {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
-        .from_path("assets/fundaccountdetails.csv")
+        .from_path(path_to_portfolio)
         .unwrap();
 
     let mut portfolio_map: HashMap<String, Asset> = HashMap::new();
@@ -81,7 +138,13 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
         let asset_name = record.get(0).unwrap().trim().to_string();
 
         let value = {
-            let value: String = record.get(3).unwrap().trim().chars().skip(1).collect();
+            let value: String = record
+                .get(portfolio_value_index)
+                .unwrap()
+                .trim()
+                .chars()
+                .skip(1)
+                .collect();
 
             value.parse::<f64>().unwrap()
         };
@@ -122,14 +185,6 @@ fn create_portfolio(target_map: HashMap<String, Percent>) -> Vec<Asset> {
     portfolio
 }
 
-
 fn adjust_target_allocation_percent(target_allocation_percent: f64) -> f64 {
     target_allocation_percent / 100.0
-
-    // TODO: remove
-    // if target_allocation_percent >= 1.0 && has_more_than_one_target {
-    //     target_allocation_percent / 100.0
-    // } else {
-    //     target_allocation_percent
-    // }
 }

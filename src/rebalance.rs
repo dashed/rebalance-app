@@ -5,9 +5,9 @@ use std::io::Write;
 
 // 3rd-party imports
 
+use num::traits::cast::FromPrimitive;
 use num::BigRational;
 use num::{One, Zero};
-use num::traits::cast::FromPrimitive;
 use num::{Signed, ToPrimitive};
 
 use tabwriter::TabWriter;
@@ -53,7 +53,6 @@ fn comparator(left: &Asset, right: &Asset) -> Ordering {
 
     Ordering::Equal
 }
-
 
 pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<Asset> {
     let amount_to_contribute = BigRational::from_f64(amount_to_contribute).unwrap();
@@ -197,7 +196,6 @@ fn to_f64(fraction: &BigRational) -> f64 {
 //         // let final_portion =
 //         //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
 
-
 //         let line = format!(
 //             "{}\t{}%\t{}",
 //             asset.name,
@@ -229,15 +227,12 @@ fn to_f64(fraction: &BigRational) -> f64 {
 //         // let final_portion =
 //         //     (&asset.value + &delta) * &asset.target_allocation_percent / target_value;
 
-
 //         let line = format!(
 //             "list.push(new Asset(1, `{}`, {}/100, {}));",
 //             asset.name,
 //             format_f64(target_allocation_percent, 3),
 //             format_f64(to_f64(&asset.value), 2)
 //         );
-
-
 
 //         buf = format!("{}\n{}", buf, line);
 //     }
@@ -267,7 +262,6 @@ pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
             Some(ref delta) => delta.clone(),
             None => BigRational::zero(),
         };
-
 
         let target_allocation_percent =
             if asset.target_allocation_percent <= BigRational::from_f64(1.0).unwrap() {
