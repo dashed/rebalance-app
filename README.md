@@ -1,6 +1,9 @@
 rebalance-app
 =============
 
+[![Build Status](https://travis-ci.org/dashed/rebalance-app.svg?branch=master)](https://travis-ci.org/dashed/rebalance-app)
+
+
 > Optimal lazy portfolio rebalancing calculator (in Rust)
 
 ![](./screenshot.png)
