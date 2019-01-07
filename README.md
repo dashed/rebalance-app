@@ -19,8 +19,8 @@ To Do
 
 - [ ] refactor out rebalance algorithm as a crate.
 - [ ] documentation and usage
-- [ ] refactor for less opinionated csv input
-- [ ] CLI using clap-rs
+- [x] refactor for less opinionated csv input
+- [x] CLI using clap-rs
 
 
 Chores

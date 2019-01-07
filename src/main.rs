@@ -44,6 +44,15 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("portfolio_value_index")
+                .short("i")
+                .long("portfolio_value_index")
+                .value_name("INDEX")
+                .help("Sets CSV index of the portfolio value")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("contribution")
                 .help("Sets the contribution amount")
                 .required(true)
@@ -52,10 +61,13 @@ fn main() {
         .get_matches();
 
     let path_to_targets = matches.value_of("targets").unwrap();
-    println!("Value for targets: {}", path_to_targets);
 
     let path_to_portfolio = matches.value_of("portfolio").unwrap();
-    println!("Value for portfolio: {}", path_to_portfolio);
+
+    let portfolio_value_index = matches
+        .value_of("portfolio_value_index")
+        .map(|x| x.parse::<usize>().unwrap())
+        .unwrap_or(1);
 
     let contribution_amount: f64 = matches
         .value_of("contribution")
@@ -69,7 +81,7 @@ fn main() {
 
     let target_map = create_target_map(path_to_targets);
 
-    let portfolio = create_portfolio(path_to_portfolio, target_map);
+    let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
 
     let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
 
@@ -108,7 +120,11 @@ fn create_target_map(path_to_targets: &str) -> HashMap<String, Percent> {
     target_map
 }
 
-fn create_portfolio(path_to_portfolio: &str, target_map: HashMap<String, Percent>) -> Vec<Asset> {
+fn create_portfolio(
+    path_to_portfolio: &str,
+    portfolio_value_index: usize,
+    target_map: HashMap<String, Percent>,
+) -> Vec<Asset> {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_path(path_to_portfolio)
@@ -122,7 +138,13 @@ fn create_portfolio(path_to_portfolio: &str, target_map: HashMap<String, Percent
         let asset_name = record.get(0).unwrap().trim().to_string();
 
         let value = {
-            let value: String = record.get(1).unwrap().trim().chars().skip(1).collect();
+            let value: String = record
+                .get(portfolio_value_index)
+                .unwrap()
+                .trim()
+                .chars()
+                .skip(1)
+                .collect();
 
             value.parse::<f64>().unwrap()
         };
