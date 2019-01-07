@@ -60,7 +60,9 @@ rebalance-app -i 3 --portfolio example/portfolio.csv --targets example/targets.c
 
 
 
-**Rationale:** Rather than rebalance your portfolio internally, add/remove money such that your asset targets % are archieved as close as possible.
+**Rationale:** Rather than rebalance your portfolio internally, add/remove money such that your asset targets % are achieved as close as possible.
+
+See this article on rebalancing: https://www.bogleheads.org/wiki/Rebalancing
 
 Based on:
 
