@@ -30,6 +30,8 @@ ARGS:
     <contribution>    Sets the contribution amount
 ```
 
+### Quickstart
+
 1. Set up `targets.csv`. Example: [example/targets.csv](example/targets.csv)
 
 2. Set up `portfolio.csv`. Usually you export this from your favourite broker. Example: [example/portfolio.csv](example/portfolio.csv)
