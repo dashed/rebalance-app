@@ -12,6 +12,8 @@ use std::collections::HashMap;
 // 3rd-party imports
 
 use clap::{App, AppSettings, Arg};
+use num::BigRational;
+use num::FromPrimitive;
 
 // local imports
 
@@ -53,6 +55,15 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("min_contribution_threshold")
+                .short("m")
+                .long("min-contribution")
+                .value_name("MIN_CONTRIBUTION")
+                .help("Sets the minimum contribution for assets")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("contribution")
                 .help("Sets the contribution amount")
                 .required(true)
@@ -69,6 +80,11 @@ fn main() {
         .map(|x| x.parse::<usize>().unwrap())
         .unwrap_or(1);
 
+    let min_contribution_threshold = matches
+        .value_of("min_contribution_threshold")
+        .map(|x| x.parse::<f64>().unwrap())
+        .unwrap_or(0.0);
+
     let contribution_amount: f64 = matches
         .value_of("contribution")
         .map(|x| x.parse::<f64>().unwrap())
@@ -83,7 +99,10 @@ fn main() {
 
     let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
 
-    let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+    let contribution_amount = BigRational::from_f64(contribution_amount).unwrap();
+    let min_contribution_threshold = BigRational::from_f64(min_contribution_threshold).unwrap();
+    let balanced_portfolio =
+        lazy_rebalance(contribution_amount, min_contribution_threshold, portfolio);
 
     println!("{}", to_string(&balanced_portfolio));
 }
@@ -199,12 +218,17 @@ mod tests {
         let path_to_portfolio = "example/portfolio.csv";
         let contribution_amount = 5000.00;
         let portfolio_value_index = 1;
+        let min_contribution_threshold = 0.0;
 
         let target_map = create_target_map(path_to_targets);
 
         let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
 
-        let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+        let contribution_amount = BigRational::from_f64(contribution_amount).unwrap();
+        let min_contribution_threshold = BigRational::from_f64(min_contribution_threshold).unwrap();
+
+        let balanced_portfolio =
+            lazy_rebalance(contribution_amount, min_contribution_threshold, portfolio);
 
         let expected = r###"
 Asset name               Asset value  Holdings %  New holdings %  Target allocation %  Target value  $ to buy/sell

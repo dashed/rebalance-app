@@ -7,7 +7,4 @@ authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 csv = "1.0.5"
 tabwriter = "1.1.0"
 clap = "2.32.0"
-
-[dependencies.num]
-git = "https://github.com/rust-num/num"
-rev = "ef752e46877dc163ec28ddcf4d71558c264bb78d"
+num = "0.2.0"

@@ -54,8 +54,12 @@ fn comparator(left: &Asset, right: &Asset) -> Ordering {
     Ordering::Equal
 }
 
-pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<Asset> {
-    let amount_to_contribute = BigRational::from_f64(amount_to_contribute).unwrap();
+pub fn lazy_rebalance(
+    amount_to_contribute: BigRational,
+    min_contribution_threshold: BigRational,
+    mut assets: Vec<Asset>,
+) -> Vec<Asset> {
+    // println!("amount_to_contribute {}", amount_to_contribute);
 
     let portfolio_total: BigRational = assets
         .iter()
@@ -148,6 +152,35 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         }
     };
 
+    let should_rebalance = {
+        let mut num_of_assets_passing_threshold = 0;
+
+        for (index, asset) in assets.iter_mut().enumerate() {
+            if index >= index_to_stop {
+                break;
+            }
+
+            let target_value = asset.target_value.as_ref().unwrap();
+
+            let deviation = asset.deviation.as_ref().unwrap();
+
+            let delta = target_value * (&__k - deviation);
+
+            let actual_delta = match &asset.delta {
+                None => delta,
+                Some(old_delta) => old_delta + delta,
+            };
+
+            if actual_delta >= min_contribution_threshold {
+                num_of_assets_passing_threshold += 1;
+            }
+        }
+
+        num_of_assets_passing_threshold >= 1
+    };
+
+    let mut extras = BigRational::zero();
+
     for (index, asset) in assets.iter_mut().enumerate() {
         if index >= index_to_stop {
             break;
@@ -159,10 +192,27 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let delta = target_value * (&__k - deviation);
 
-        asset.delta = Some(delta);
+        let new_delta = asset
+            .delta
+            .clone()
+            .map_or(delta.clone(), |old_delta| old_delta + delta.clone());
+
+        if new_delta >= min_contribution_threshold || !should_rebalance {
+            asset.delta = Some(new_delta);
+        } else {
+            extras = extras + delta;
+        }
     }
 
-    assets
+    // println!("{}", to_string(&assets));
+    // println!("------");
+
+    if should_rebalance && extras > BigRational::zero() {
+        // println!("rebalancing");
+        return lazy_rebalance(extras, min_contribution_threshold, assets);
+    }
+
+    return assets;
 }
 
 fn to_f64(fraction: &BigRational) -> f64 {
