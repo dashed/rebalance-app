@@ -216,7 +216,7 @@ mod tests {
     fn test_example() {
         let path_to_targets = "example/targets.csv";
         let path_to_portfolio = "example/portfolio.csv";
-        let contribution_amount = 5000.00;
+        let contribution_amount = 10000.00;
         let portfolio_value_index = 1;
         let min_contribution_threshold = 0.0;
 
@@ -232,11 +232,41 @@ mod tests {
 
         let expected = r###"
 Asset name               Asset value  Holdings %  New holdings %  Target allocation %  Target value  $ to buy/sell
-TIPS fund                6500.00      6.500       8.889           10.000               10500.00      2833.33
-Bond fund                16500.00     16.500      17.778          20.000               21000.00      2166.67
-Domestic Stock ETF       43500.00     43.500      41.429          40.000               42000.00      0.00
-International Stock ETF  33500.00     33.500      31.905          30.000               31500.00      0.00
-Total                    100000.00    100.000     100.000         100.000              105000.00     5000.00
+TIPS fund                6500.00      6.500       9.935           10.000               11000.00      4428.57
+Bond fund                16500.00     16.500      19.870          20.000               22000.00      5357.14
+Domestic Stock ETF       43500.00     43.500      39.740          40.000               44000.00      214.29
+International Stock ETF  33500.00     33.500      30.455          30.000               33000.00      0.00
+Total                    100000.00    100.000     100.000         100.000              110000.00     10000.00
+        "###.trim();
+
+        assert_eq!(to_string(&balanced_portfolio), expected);
+    }
+
+    #[test]
+    fn test_example_with_min_contribution() {
+        let path_to_targets = "example/targets.csv";
+        let path_to_portfolio = "example/portfolio.csv";
+        let contribution_amount = 10000.00;
+        let portfolio_value_index = 1;
+        let min_contribution_threshold = 300.00;
+
+        let target_map = create_target_map(path_to_targets);
+
+        let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
+
+        let contribution_amount = BigRational::from_f64(contribution_amount).unwrap();
+        let min_contribution_threshold = BigRational::from_f64(min_contribution_threshold).unwrap();
+
+        let balanced_portfolio =
+            lazy_rebalance(contribution_amount, min_contribution_threshold, portfolio);
+
+        let expected = r###"
+Asset name               Asset value  Holdings %  New holdings %  Target allocation %  Target value  $ to buy/sell
+TIPS fund                6500.00      6.500       11.119          10.000               10021.43      4642.86
+Bond fund                16500.00     16.500      21.810          20.000               20042.86      5357.14
+Domestic Stock ETF       43500.00     43.500      43.407          40.000               40085.71      0.00
+International Stock ETF  33500.00     33.500      33.428          30.000               30064.29      0.00
+Total                    100000.00    100.000     109.765         100.000              100214.29     10000.00
         "###.trim();
 
         assert_eq!(to_string(&balanced_portfolio), expected);
