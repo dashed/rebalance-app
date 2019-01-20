@@ -23,7 +23,7 @@ use rebalance::{lazy_rebalance, to_string, Asset};
 
 fn main() {
     let matches = App::new("rebalance-app")
-        .version("1.0")
+        .version("1.1.0")
         .author("Alberto Leal (github.com/dashed) <mailforalberto@gmail.com>")
         .about("Optimal lazy portfolio rebalancing calculator")
         .setting(AppSettings::AllowNegativeNumbers)

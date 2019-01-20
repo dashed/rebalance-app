@@ -13,7 +13,7 @@ rebalance-app
 
 ```
 $ rebalance-app --help
-rebalance-app 1.0
+rebalance-app 1.1.0
 Alberto Leal (github.com/dashed) <mailforalberto@gmail.com>
 Optimal lazy portfolio rebalancing calculator
 
@@ -25,9 +25,10 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -p, --portfolio <FILE>                 Sets a portfolio file
-    -i, --portfolio_value_index <INDEX>    Sets CSV index of the portfolio value
-    -t, --targets <FILE>                   Sets a targets file
+    -m, --min-contribution <MIN_CONTRIBUTION>    Sets the minimum contribution for assets
+    -p, --portfolio <FILE>                       Sets a portfolio file
+    -i, --portfolio_value_index <INDEX>          Sets CSV index of the portfolio value
+    -t, --targets <FILE>                         Sets a targets file
 
 ARGS:
     <contribution>    Sets the contribution amount
