@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate clap;
 extern crate csv;
 extern crate num;
@@ -15,7 +16,7 @@ use clap::{App, AppSettings, Arg};
 
 // local imports
 
-use rebalance::{lazy_rebalance, to_string, Asset};
+use rebalance::{lazy_rebalance, to_ledger_string, to_string, Asset};
 
 // app
 
@@ -58,6 +59,31 @@ fn main() {
                 .required(true)
                 .index(1),
         )
+        .arg(
+            Arg::with_name("ledger")
+                .short("l")
+                .long("ledger")
+                .value_name("LEDGER")
+                .help("Display as ledger")
+                .required(false)
+                .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("dest_account_name")
+                .short("d")
+                .long("dest-account")
+                .help("Sets destination account for each ledger transaction")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("source_account_name")
+                .short("s")
+                .long("source-account")
+                .help("Sets source account for each ledger transaction")
+                .required(false)
+                .takes_value(true),
+        )
         .get_matches();
 
     let path_to_targets = matches.value_of("targets").unwrap();
@@ -84,6 +110,21 @@ fn main() {
     let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
 
     let balanced_portfolio = lazy_rebalance(contribution_amount, portfolio);
+
+    if matches.is_present("ledger") {
+        let dest_account_name = matches
+            .value_of("dest_account_name")
+            .unwrap_or("destination_account");
+        let source_account_name = matches
+            .value_of("source_account_name")
+            .unwrap_or("source_account");
+
+        println!(
+            "{}",
+            to_ledger_string(&balanced_portfolio, dest_account_name, source_account_name)
+        );
+        return;
+    }
 
     println!("{}", to_string(&balanced_portfolio));
 }
