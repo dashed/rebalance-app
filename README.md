@@ -13,7 +13,7 @@ rebalance-app
 
 ```
 $ rebalance-app --help
-rebalance-app 1.1.0
+rebalance-app 1.2.0
 Alberto Leal (github.com/dashed) <mailforalberto@gmail.com>
 Optimal lazy portfolio rebalancing calculator
 
@@ -25,10 +25,9 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -m, --min-contribution <MIN_CONTRIBUTION>    Sets the minimum contribution for assets
-    -p, --portfolio <FILE>                       Sets a portfolio file
-    -i, --portfolio_value_index <INDEX>          Sets CSV index of the portfolio value
-    -t, --targets <FILE>                         Sets a targets file
+    -p, --portfolio <FILE>                 Sets a portfolio file
+    -i, --portfolio_value_index <INDEX>    Sets CSV index of the portfolio value
+    -t, --targets <FILE>                   Sets a targets file
 
 ARGS:
     <contribution>    Sets the contribution amount
@@ -56,21 +55,6 @@ You can adjust this using the `-i` flag:
 ```
 rebalance-app -i 3 --portfolio example/portfolio.csv --targets example/targets.csv 5000
 ```
-
-### Minimum Contributions
-
-Certain brokers may have certain securities that have minimum investment contributions.
-
-The flag `-m`/`--min-contribution` comes in handy for this usecase.
-
-For example, the following command:
-
-```
-
-rebalance-app --portfolio example/portfolio.csv --targets example/targets.csv -m 300 5000
-```
-
-says that *"I want to contribute $5000 with the requirement that my contributions to each asset is at least $300"*.
 
 ### About
 
