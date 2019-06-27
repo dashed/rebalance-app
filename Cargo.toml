@@ -4,7 +4,7 @@ version = "1.2.0"
 authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 
 [dependencies]
-csv = "1.0.7"
+csv = "1.1.0"
 tabwriter = "1.1.0"
 clap = "2.33.0"
 num = "0.2.0"
