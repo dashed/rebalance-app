@@ -276,7 +276,7 @@ pub fn to_ledger_string(
         let line: String = if delta <= BigRational::zero() {
             format!(
                 r#"
-    {} * Withdrawal from {}
+{} * Withdrawal from {}
         {:76}{} CAD
         {}
     "#,
@@ -285,11 +285,11 @@ pub fn to_ledger_string(
                 dest_account_name,
                 amount_to_contribute,
                 source_account_name
-            )
+            ).trim().to_string()
         } else {
             format!(
                 r#"
-    {} * Contribution to {}
+{} * Contribution to {}
         {:76}{} CAD
         {}
     "#,
@@ -298,10 +298,10 @@ pub fn to_ledger_string(
                 dest_account_name,
                 amount_to_contribute,
                 source_account_name
-            )
+            ).trim().to_string()
         };
 
-        buf = format!("{}\n{}", buf, line);
+        buf = format!("{}\n{}\n", buf, line);
     }
 
     return buf.to_string();
