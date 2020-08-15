@@ -10,6 +10,8 @@ use num::BigRational;
 use num::{One, Zero};
 use num::{Signed, ToPrimitive};
 
+use chrono::prelude::*;
+
 use tabwriter::TabWriter;
 
 pub struct Asset {
@@ -71,9 +73,9 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         let deviation = (&asset.value / &target_value) - BigRational::one();
 
         asset.actual_allocation = if portfolio_total <= BigRational::zero() {
-          BigRational::zero()
+            BigRational::zero()
         } else {
-          &asset.value / &portfolio_total
+            &asset.value / &portfolio_total
         };
 
         asset.target_value = Some(target_value);
@@ -249,6 +251,61 @@ fn to_f64(fraction: &BigRational) -> f64 {
 
 //     String::from_utf8(tw.into_inner().unwrap()).unwrap()
 // }
+
+pub fn to_ledger_string(
+    balanced_portfolio: &Vec<Asset>,
+    dest_account_name: &str,
+    source_account_name: &str,
+) -> String {
+    let mut buf: String = "".to_string();
+
+    for asset in balanced_portfolio {
+        let delta = match asset.delta {
+            Some(ref delta) => delta.clone(),
+            None => BigRational::zero(),
+        };
+
+        if delta == BigRational::zero() {
+            continue;
+        }
+
+        let date_time_now = Local::now().format("%Y-%m-%d").to_string();
+
+        let amount_to_contribute = format_f64(to_f64(&delta), 2);
+
+        let line: String = if delta <= BigRational::zero() {
+            format!(
+                r#"
+{} * Withdrawal from {}
+        {:76}{} CAD
+        {}
+    "#,
+                date_time_now,
+                asset.name,
+                dest_account_name,
+                amount_to_contribute,
+                source_account_name
+            ).trim().to_string()
+        } else {
+            format!(
+                r#"
+{} * Contribution to {}
+        {:76}{} CAD
+        {}
+    "#,
+                date_time_now,
+                asset.name,
+                dest_account_name,
+                amount_to_contribute,
+                source_account_name
+            ).trim().to_string()
+        };
+
+        buf = format!("{}\n{}\n", buf, line);
+    }
+
+    return buf.to_string();
+}
 
 pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
     let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation \
