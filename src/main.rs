@@ -258,5 +258,4 @@ Total                    100000.00    100.000     100.000         100.000       
 
         assert_eq!(to_string(&balanced_portfolio), expected);
     }
-
 }
