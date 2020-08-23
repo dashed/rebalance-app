@@ -6,6 +6,6 @@ authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 [dependencies]
 csv = "1.1.1"
 tabwriter = "1.1.0"
-clap = "2.33.0"
+clap = "2.33.3"
 num = "0.2.0"
 chrono = "0.4.6"
