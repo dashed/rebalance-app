@@ -272,33 +272,40 @@ pub fn to_ledger_string(
         let date_time_now = Local::now().format("%Y-%m-%d").to_string();
 
         let amount_to_contribute = format_f64(to_f64(&delta), 2);
+        let amount_to_withdraw = format_f64(-to_f64(&delta), 2);
 
         let line: String = if delta <= BigRational::zero() {
             format!(
                 r#"
-{} * Withdrawal from {}
-        {:76}{} CAD
-        {}
+{date} * Withdrawal from {account_name}
+    {dest_account_name:76}{amount_to_contribute} CAD
+    {source_account_name:76}{amount_to_withdraw} CAD
     "#,
-                date_time_now,
-                asset.name,
-                dest_account_name,
-                amount_to_contribute,
-                source_account_name
-            ).trim().to_string()
+                date = date_time_now,
+                account_name = asset.name,
+                dest_account_name = dest_account_name,
+                amount_to_contribute = amount_to_contribute,
+                source_account_name = source_account_name,
+                amount_to_withdraw = amount_to_withdraw
+            )
+            .trim()
+            .to_string()
         } else {
             format!(
                 r#"
-{} * Contribution to {}
-        {:76}{} CAD
-        {}
+{date} * Contribution to {account_name}
+    {dest_account_name:76}{amount_to_contribute} CAD
+    {source_account_name:76}{amount_to_withdraw} CAD
     "#,
-                date_time_now,
-                asset.name,
-                dest_account_name,
-                amount_to_contribute,
-                source_account_name
-            ).trim().to_string()
+                date = date_time_now,
+                account_name = asset.name,
+                dest_account_name = dest_account_name,
+                amount_to_contribute = amount_to_contribute,
+                source_account_name = source_account_name,
+                amount_to_withdraw = amount_to_withdraw
+            )
+            .trim()
+            .to_string()
         };
 
         buf = format!("{}\n{}\n", buf, line);
