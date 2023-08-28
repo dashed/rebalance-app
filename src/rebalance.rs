@@ -137,13 +137,14 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             // TODO: todo-note
             // println!("delta: {}", to_f64(&(&next_least_deviation - &largest_least_deviation)));
 
-            let __t: BigRational = &cumulative_target_value * (&next_least_deviation - &largest_least_deviation);
+            // For the first asset, this is the amount contributed.
+            let contribution: BigRational = &cumulative_target_value * (&next_least_deviation - &largest_least_deviation);
 
             // TODO: todo-note
-            // println!("__t: {}", to_f64(&__t));
+            // println!("contribution: {}", to_f64(&contribution));
 
-            if __t.abs() <= amount_left_to_contribute.abs() {
-                amount_left_to_contribute = amount_left_to_contribute - __t;
+            if contribution.abs() <= amount_left_to_contribute.abs() {
+                amount_left_to_contribute = amount_left_to_contribute - contribution;
                 largest_least_deviation = next_least_deviation;
             } else {
                 largest_least_deviation = largest_least_deviation + (amount_left_to_contribute / &cumulative_target_value);
