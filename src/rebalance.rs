@@ -165,6 +165,8 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         }
     };
 
+    // Calculate amount to contribute for each eligible asset.
+    // Eligible assets are those before `index_to_stop`.
     for (index, asset) in assets.iter_mut().enumerate() {
         if index >= index_to_stop {
             break;
@@ -174,6 +176,31 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let deviation = asset.deviation.as_ref().unwrap();
 
+
+        /****
+         
+        Definition:
+        deviation = asset_market_value / target_asset_market_value - 1
+        
+        Goal: (asset_market_value + delta) / target_asset_market_value - 1 = largest_least_deviation
+        
+        
+        Solve for delta from above:
+        (asset_market_value + delta) / target_asset_market_value = largest_least_deviation + 1
+        asset_market_value + delta = (largest_least_deviation + 1) * target_asset_market_value
+        
+        (1) delta = (largest_least_deviation + 1) * target_asset_market_value - asset_market_value
+        
+        
+        Assume:
+        delta = target_asset_market_value * (largest_least_deviation - deviation)
+        
+        Manipulate algebra to see it's equivalent to (1):
+        delta = target_asset_market_value * (largest_least_deviation - [asset_market_value / target_asset_market_value - 1])
+        delta = target_asset_market_value * (largest_least_deviation + [1 - asset_market_value / target_asset_market_value])
+        delta = (largest_least_deviation + 1) * target_asset_market_value - asset_market_value
+
+        ****/
         let delta = target_value * (&largest_least_deviation - deviation);
 
         asset.delta = Some(delta);
