@@ -97,8 +97,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         // of assets with 'lowest' approx. errors. in other words, assets with lowest approx. error
         // gets first dibs of the contribution first.
 
-        // TODO: wtf is this
-        let mut __h: BigRational = BigRational::zero();
+        let mut cumulative_target_value: BigRational = BigRational::zero();
 
         let mut amount_left_to_contribute: BigRational = amount_to_contribute.clone();
         // TODO: wtf is this
@@ -117,7 +116,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             __k = asset.deviation.as_ref().unwrap().clone();
 
             let target_value = asset.target_value.as_ref().unwrap();
-            __h = &__h + target_value;
+            cumulative_target_value = &cumulative_target_value + target_value;
 
             let next_least_deviation = if index >= (assets.len() - 1) {
                 BigRational::zero()
@@ -128,7 +127,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             // TODO: todo-note
             // println!("delta: {}", to_f64(&(&next_least_deviation - &__k)));
 
-            let __t: BigRational = &__h * (&next_least_deviation - &__k);
+            let __t: BigRational = &cumulative_target_value * (&next_least_deviation - &__k);
 
             // TODO: todo-note
             // println!("__t: {}", to_f64(&__t));
@@ -137,7 +136,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
                 amount_left_to_contribute = amount_left_to_contribute - __t;
                 __k = next_least_deviation;
             } else {
-                __k = __k + (amount_left_to_contribute / &__h);
+                __k = __k + (amount_left_to_contribute / &cumulative_target_value);
 
                 // TODO: remove
                 // amount_left_to_contribute = BigRational::zero();
@@ -148,6 +147,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         match last_known_index {
             Some(last_known_index) => {
+                // We contribute to all assets before index_to_stop.
                 let index_to_stop = last_known_index + 1;
                 (__k, index_to_stop)
             }
