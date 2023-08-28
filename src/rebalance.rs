@@ -70,6 +70,8 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         // equivalent to: (value - target_value) / target_value
         // see: https://en.wikipedia.org/wiki/Approximation_error#Formal_Definition
+        // 
+        // This will be negative for underweighted assets and positive for overweighted assets.
         let deviation = (&asset.value / &target_value) - BigRational::one();
 
         asset.actual_allocation = if portfolio_total <= BigRational::zero() {
@@ -92,7 +94,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         }
     });
 
-    let (__k, index_to_stop): (BigRational, usize) = {
+    let (largest_least_deviation, index_to_stop): (BigRational, usize) = {
         // since deviations are approx. errors, original author wanted to 'minimize' approx. errors
         // of assets with 'lowest' approx. errors. in other words, assets with lowest approx. error
         // gets first dibs of the contribution first.
@@ -101,7 +103,15 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let mut amount_left_to_contribute: BigRational = amount_to_contribute.clone();
         // TODO: wtf is this
-        let mut __k: BigRational = BigRational::zero();
+        // Idea:
+        // Add money to the asset(s) with least fractional deviation until they are tied with the asset(s) with the 
+        // next-least fractional deviation.
+        // 
+        // When contributing to assets with lowest fractional deviation to the largest fractional deviation, we may be
+        // unable to contribute to all the assets in the portfolio.
+        // 
+        // The last asset we contribute to will be compared to `largest_least_deviation`.
+        let mut largest_least_deviation: BigRational = BigRational::zero();
 
         let mut last_known_index = None;
 
@@ -113,7 +123,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             let asset: &Asset = asset;
             last_known_index = Some(index);
 
-            __k = asset.deviation.as_ref().unwrap().clone();
+            largest_least_deviation = asset.deviation.as_ref().unwrap().clone();
 
             let target_value = asset.target_value.as_ref().unwrap();
             cumulative_target_value = &cumulative_target_value + target_value;
@@ -125,18 +135,18 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             };
 
             // TODO: todo-note
-            // println!("delta: {}", to_f64(&(&next_least_deviation - &__k)));
+            // println!("delta: {}", to_f64(&(&next_least_deviation - &largest_least_deviation)));
 
-            let __t: BigRational = &cumulative_target_value * (&next_least_deviation - &__k);
+            let __t: BigRational = &cumulative_target_value * (&next_least_deviation - &largest_least_deviation);
 
             // TODO: todo-note
             // println!("__t: {}", to_f64(&__t));
 
             if __t.abs() <= amount_left_to_contribute.abs() {
                 amount_left_to_contribute = amount_left_to_contribute - __t;
-                __k = next_least_deviation;
+                largest_least_deviation = next_least_deviation;
             } else {
-                __k = __k + (amount_left_to_contribute / &cumulative_target_value);
+                largest_least_deviation = largest_least_deviation + (amount_left_to_contribute / &cumulative_target_value);
 
                 // TODO: remove
                 // amount_left_to_contribute = BigRational::zero();
@@ -149,9 +159,9 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
             Some(last_known_index) => {
                 // We contribute to all assets before index_to_stop.
                 let index_to_stop = last_known_index + 1;
-                (__k, index_to_stop)
+                (largest_least_deviation, index_to_stop)
             }
-            None => (__k, 0),
+            None => (largest_least_deviation, 0),
         }
     };
 
@@ -164,7 +174,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let deviation = asset.deviation.as_ref().unwrap();
 
-        let delta = target_value * (&__k - deviation);
+        let delta = target_value * (&largest_least_deviation - deviation);
 
         asset.delta = Some(delta);
     }
