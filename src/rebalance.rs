@@ -1,7 +1,9 @@
 // rust imports
 
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::io::Write;
+use std::iter::FromIterator;
 
 // 3rd-party imports
 
@@ -453,6 +455,7 @@ fn format_f64(price: f64, dec_places: usize) -> String {
 
 // EVERYTHING BELOW IS NEW
 
+#[derive(Clone, Debug)]
 struct NewAsset {
     name: String,
     actual_value: BigRational,
@@ -461,6 +464,7 @@ struct NewAsset {
     target_allocation_percent: BigRational,
 }
 
+#[derive(Clone, Debug)]
 pub struct PortfolioAsset {
     asset: NewAsset,
     target_value: Option<BigRational>,
@@ -477,6 +481,8 @@ pub struct PortfolioAsset {
     // If it is positive, then contributions are added. Otherwise, if it is negative, then it is considered a
     // withdrawal.
     contribution: Option<BigRational>,
+
+    debug_contribution: Option<BigRational>,
 }
 
 pub fn convert_old_portfolio(old_assets: Vec<Asset>) -> Vec<PortfolioAsset> {
@@ -495,6 +501,7 @@ pub fn convert_old_portfolio(old_assets: Vec<Asset>) -> Vec<PortfolioAsset> {
                 target_value: old_asset.target_value,
                 fractional_deviation: old_asset.deviation,
                 contribution: old_asset.delta,
+                debug_contribution: None,
             }
         })
         .collect()
@@ -559,6 +566,9 @@ pub fn new_lazy_rebalance(
         }
     });
 
+    // TODO: debug
+    let mut debug_contributions: HashMap<String, BigRational> = HashMap::new();
+
     let (largest_least_deviation, index_to_stop): (BigRational, usize) = {
         // This is the amount of contribution added to the group of assets with the most negative (lowest) fractional
         // deviation to the most positive fractional deviation.
@@ -576,11 +586,11 @@ pub fn new_lazy_rebalance(
         let mut last_known_index: Option<usize> = None;
 
         for (index, portfolio_asset) in assets.iter().enumerate() {
-            //
-
             if amount_left_to_contribute.abs() <= BigRational::zero() {
                 break;
             }
+
+            debug_contributions.insert(portfolio_asset.asset.name.clone(), BigRational::zero());
 
             last_known_index = Some(index);
 
@@ -624,6 +634,32 @@ pub fn new_lazy_rebalance(
 
             contribution_added = &contribution_added + target_value;
 
+            // TODO: debug
+            {
+                let mut amount_added =
+                    if distributed_contribution.abs() <= amount_left_to_contribute.abs() {
+                        distributed_contribution.clone()
+                    } else {
+                        amount_left_to_contribute.clone()
+                    };
+
+                let group_of_assets: Vec<PortfolioAsset> =
+                    assets[0..(index + 1)].iter().cloned().collect();
+                let total_percent: BigRational = group_of_assets
+                    .iter()
+                    .map(|x: &PortfolioAsset| x.asset.target_allocation_percent.clone())
+                    .sum();
+
+                for x in assets.iter() {
+                    let portion =
+                        &amount_added * (&x.asset.target_allocation_percent / &total_percent);
+
+                    if let Some(x) = debug_contributions.get_mut(&x.asset.name) {
+                        *x += portion;
+                    }
+                }
+            };
+
             if distributed_contribution.abs() <= amount_left_to_contribute.abs() {
                 amount_left_to_contribute = amount_left_to_contribute - distributed_contribution;
                 largest_least_deviation = next_least_deviation;
@@ -661,6 +697,24 @@ pub fn new_lazy_rebalance(
         let fractional_deviation = portfolio_asset.fractional_deviation.as_ref().unwrap();
 
         let contribution = target_value * (&largest_least_deviation - fractional_deviation);
+
+        
+
+        println!(
+            "contribution for {}: {}",
+            portfolio_asset.asset.name,
+            to_f64(&contribution)
+        );
+        let portion = &debug_contributions
+            .get(&portfolio_asset.asset.name)
+            .unwrap();
+        println!(
+            "debug contribution for {}: {}",
+            portfolio_asset.asset.name,
+            to_f64(&portion)
+        );
+
+        assert!(*portion.clone() == contribution.clone());
 
         portfolio_asset.contribution = Some(contribution);
     }
