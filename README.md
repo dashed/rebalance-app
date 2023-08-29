@@ -1,13 +1,10 @@
-rebalance-app
-=============
+# rebalance-app
 
 [![Build Status](https://travis-ci.org/dashed/rebalance-app.svg?branch=master)](https://travis-ci.org/dashed/rebalance-app)
-
 
 > Optimal lazy portfolio rebalancing calculator (in Rust)
 
 ![](./screenshot.png)
-
 
 ## Usage
 
@@ -58,7 +55,6 @@ rebalance-app -i 3 --portfolio example/portfolio.csv --targets example/targets.c
 
 ### About
 
-
 **Rationale:** Rather than rebalance your portfolio internally, add/remove money such that your asset targets % are achieved as close as possible.
 
 See this article on rebalancing: https://www.bogleheads.org/wiki/Rebalancing
@@ -68,25 +64,31 @@ Based on:
 - http://optimalrebalancing.tk
 - https://github.com/EDawg878/Portfolio-Rebalancer
 
-
 **How it works:**
 
-Source: http://optimalrebalancing.tk/explanation.html
+Source: [http://optimalrebalancing.tk/explanation.html (archived snapshot)](http://archive.today/IB0hQ)
 
-*Step 1: Calculate the fractional deviations*
+**Step 1: Calculate How Each Asset Deviates From Its Target**
 
-Define the fractional deviation `f` of an asset to be `a/t − 1`, where `t` is the asset's target allocation and `a` is its actual portion of the portfolio. Calculate `f` for each asset. `f` will be negative for underweighted assets and positive for overweighted assets. Note that a denotes the portion relative to the final total portfolio value; this is obtained by adding the contribution amount to the original total portfolio value.
+1. Define the difference between each asset's actual value and its intended portion after factoring in the new contribution. This difference is expressed as a percentage `f`, termed the fractional deviation.
+2. Compute `f` as: `f = a/t - 1`, where:
+   - `a` is the current value of the asset.
+   - `t` is the intended portion of the asset relative to the final total portfolio value, which is obtained by adding the new contribution to the original total portfolio value.
 
-*Step 2: Add money to asset(s) with lowest fractional deviation*
+A negative `f` indicates the asset is below its target, while a positive `f` means it's over its target.
 
-Add money to the asset(s) with least `f` until they are tied with the asset(s) with the next-least `f`. The money added to each asset must be proportional to that asset's target allocation so that the minimum `f`'s increase in synchrony. Repeat this until the contribution amount is exhausted. If the assets are pre-sorted according to `f`, this process can be implemented such that its running time increases linearly with the number of assets.
+**Step 2: Distribute Funds to Assets to Equalize Their Deviations**
 
-Chores
-======
+1. Start by identifying the group of assets with the most negative (lowest) `f` values, i.e., those furthest below their target.
+2. Allocate a portion of the contribution to this group of assets. The goal is to bring their `f` values close to or equal to the next lowest `f` value among the remaining assets.
+3. Within this group of most underweight assets, distribute the contribution proportionally based on their target allocations. For instance, if two assets in this group have target allocations of 10% and 20% respectively, and you're adding $30, the first should get $10, and the second should get $20.
+
+4. Repeat steps 1 through 3 until all of the new contribution is distributed across the assets.
+
+# Chores
 
 - `cargo fmt`
 
-License
-=======
+# License
 
 GPL-3.0+.
