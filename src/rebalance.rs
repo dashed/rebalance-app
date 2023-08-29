@@ -70,7 +70,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         // equivalent to: (value - target_value) / target_value
         // see: https://en.wikipedia.org/wiki/Approximation_error#Formal_Definition
-        // 
+        //
         // This will be negative for underweighted assets and positive for overweighted assets.
         let deviation = (&asset.value / &target_value) - BigRational::one();
 
@@ -101,21 +101,31 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let mut cumulative_target_value: BigRational = BigRational::zero();
 
+        println!(
+            "amount_to_contribute: {}",
+            to_f64(&amount_to_contribute.clone())
+        );
+
         let mut amount_left_to_contribute: BigRational = amount_to_contribute.clone();
         // TODO: wtf is this
         // Idea:
-        // Add money to the asset(s) with least fractional deviation until they are tied with the asset(s) with the 
+        // Add money to the asset(s) with least fractional deviation until they are tied with the asset(s) with the
         // next-least fractional deviation.
-        // 
+        //
         // When contributing to assets with lowest fractional deviation to the largest fractional deviation, we may be
         // unable to contribute to all the assets in the portfolio.
-        // 
+        //
         // The last asset we contribute to will be compared to `largest_least_deviation`.
         let mut largest_least_deviation: BigRational = BigRational::zero();
 
         let mut last_known_index = None;
 
         for (index, asset) in assets.iter().enumerate() {
+            println!();
+            println!(
+                "amount_left_to_contribute: {}",
+                to_f64(&amount_left_to_contribute)
+            );
             if amount_left_to_contribute.abs() <= BigRational::zero() {
                 break;
             }
@@ -134,12 +144,15 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
                 assets[index + 1].deviation.as_ref().unwrap().clone()
             };
 
-
-            // For the first asset, this is the amount contributed.
-            let contribution: BigRational = &cumulative_target_value * (&next_least_deviation - &deviation);
+            let contribution: BigRational =
+                &cumulative_target_value * (&next_least_deviation - &deviation);
 
             // TODO: todo-note
-            // println!("contribution: {}", to_f64(&contribution));
+            println!(
+                "cumulative_target_value: {}",
+                to_f64(&cumulative_target_value)
+            );
+            println!("contribution for {}: {}", asset.name, to_f64(&contribution));
 
             largest_least_deviation = deviation;
 
@@ -147,11 +160,8 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
                 amount_left_to_contribute = amount_left_to_contribute - contribution;
                 largest_least_deviation = next_least_deviation;
             } else {
-                largest_least_deviation = largest_least_deviation + (amount_left_to_contribute / &cumulative_target_value);
-
-                // TODO: remove
-                // amount_left_to_contribute = BigRational::zero();
-
+                largest_least_deviation = largest_least_deviation
+                    + (amount_left_to_contribute / &cumulative_target_value);
                 break;
             }
         }
@@ -166,6 +176,8 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         }
     };
 
+    println!("----");
+
     // Calculate amount to contribute for each eligible asset.
     // Eligible assets are those before `index_to_stop`.
     for (index, asset) in assets.iter_mut().enumerate() {
@@ -177,25 +189,24 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
 
         let deviation = asset.deviation.as_ref().unwrap();
 
-
         /****
-         
+
         Definition:
         deviation = asset_market_value / target_asset_market_value - 1
-        
+
         Goal: (asset_market_value + delta) / target_asset_market_value - 1 = largest_least_deviation
-        
-        
+
+
         Solve for delta from above:
         (asset_market_value + delta) / target_asset_market_value = largest_least_deviation + 1
         asset_market_value + delta = (largest_least_deviation + 1) * target_asset_market_value
-        
+
         (1) delta = (largest_least_deviation + 1) * target_asset_market_value - asset_market_value
-        
-        
+
+
         Assume:
         delta = target_asset_market_value * (largest_least_deviation - deviation)
-        
+
         Manipulate algebra to see it's equivalent to (1):
         delta = target_asset_market_value * (largest_least_deviation - [asset_market_value / target_asset_market_value - 1])
         delta = target_asset_market_value * (largest_least_deviation + [1 - asset_market_value / target_asset_market_value])
@@ -204,8 +215,12 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         ****/
         let delta = target_value * (&largest_least_deviation - deviation);
 
+        println!("contribution for {}: {}", asset.name, to_f64(&delta));
+
         asset.delta = Some(delta);
     }
+
+    assert!(false);
 
     assets
 }
@@ -434,4 +449,71 @@ pub fn to_string(balanced_portfolio: &Vec<Asset>) -> String {
 
 fn format_f64(price: f64, dec_places: usize) -> String {
     format!("{:.*}", dec_places, price)
+}
+
+// EVERYTHING BELOW IS NEW
+
+struct NewAsset {
+    name: String,
+    actual_value: BigRational,
+
+    actual_allocation_percent: BigRational,
+    target_allocation_percent: BigRational,
+}
+
+struct PortfolioAsset {
+    asset: NewAsset,
+    target_value: Option<BigRational>,
+    // Define the difference between each asset's actual value and its intended value after factoring in the new
+    // contribution. Expressed as a percentage.
+    //
+    // fractional_deviation = actual_value / target_value - 1
+    //
+    // A negative fractional_deviation value indicates the asset is below its target_value, while a positive
+    // fractional_deviation means it is over its target_value. A value of zero means the asset has reached its intended
+    // target_value.
+    fractional_deviation: Option<BigRational>,
+    // Amount of contribution to add to this asset.
+    // If it is positive, then contributions are added. Otherwise, if it is negative, then it is considered a
+    // withdrawal.
+    contribution: Option<BigRational>,
+}
+
+fn new_lazy_rebalance(
+    amount_to_contribute: f64,
+    mut assets: Vec<PortfolioAsset>,
+) -> Vec<PortfolioAsset> {
+    let amount_to_contribute = BigRational::from_f64(amount_to_contribute).unwrap();
+
+    let portfolio_total: BigRational = assets
+        .iter()
+        .fold(BigRational::zero(), |total, ref portfolio_asset| {
+            total + &portfolio_asset.asset.value
+        });
+
+    let target_total: BigRational = &portfolio_total + &amount_to_contribute;
+
+    for portfolio_asset in assets.iter_mut() {
+        let target_value = &target_total * &portfolio_asset.asset.target_allocation_percent;
+
+        // Equivalent to: (value - target_value) / target_value
+        // Similar to relative error, but with positive/negative sign having semantic meaning.
+        // See: https://en.wikipedia.org/wiki/Approximation_error#Formal_Definition
+        //
+        // This will be negative for underweighted assets and positive for overweighted assets.
+        let fractional_deviation =
+            (&portfolio_asset.asset.actual_value / &target_value) - BigRational::one();
+
+        portfolio_asset.asset.actual_allocation_percent = if portfolio_total <= BigRational::zero()
+        {
+            BigRational::zero()
+        } else {
+            &portfolio_asset.asset.actual_value / &portfolio_total
+        };
+
+        portfolio_asset.target_value = Some(target_value);
+        portfolio_asset.fractional_deviation = Some(fractional_deviation);
+    }
+
+    return vec![];
 }
