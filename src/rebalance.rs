@@ -479,6 +479,18 @@ struct PortfolioAsset {
     contribution: Option<BigRational>,
 }
 
+fn asset_comparator(left: &PortfolioAsset, right: &PortfolioAsset) -> Ordering {
+    if left.fractional_deviation < right.fractional_deviation {
+        return Ordering::Less;
+    }
+
+    if left.fractional_deviation > right.fractional_deviation {
+        return Ordering::Greater;
+    }
+
+    Ordering::Equal
+}
+
 fn new_lazy_rebalance(
     amount_to_contribute: f64,
     mut assets: Vec<PortfolioAsset>,
@@ -514,6 +526,16 @@ fn new_lazy_rebalance(
         portfolio_asset.target_value = Some(target_value);
         portfolio_asset.fractional_deviation = Some(fractional_deviation);
     }
+
+    assets.sort_by(|left, right| {
+        let result = asset_comparator(left, right);
+
+        if amount_to_contribute < BigRational::zero() {
+            result.reverse()
+        } else {
+            result
+        }
+    });
 
     return vec![];
 }
