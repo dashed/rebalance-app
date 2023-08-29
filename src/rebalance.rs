@@ -481,8 +481,6 @@ pub struct PortfolioAsset {
     // If it is positive, then contributions are added. Otherwise, if it is negative, then it is considered a
     // withdrawal.
     contribution: Option<BigRational>,
-
-    debug_contribution: Option<BigRational>,
 }
 
 pub fn convert_old_portfolio(old_assets: Vec<Asset>) -> Vec<PortfolioAsset> {
@@ -501,7 +499,6 @@ pub fn convert_old_portfolio(old_assets: Vec<Asset>) -> Vec<PortfolioAsset> {
                 target_value: old_asset.target_value,
                 fractional_deviation: old_asset.deviation,
                 contribution: old_asset.delta,
-                debug_contribution: None,
             }
         })
         .collect()
