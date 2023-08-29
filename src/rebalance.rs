@@ -500,7 +500,7 @@ fn new_lazy_rebalance(
     let portfolio_total: BigRational = assets
         .iter()
         .fold(BigRational::zero(), |total, ref portfolio_asset| {
-            total + &portfolio_asset.asset.value
+            total + &portfolio_asset.asset.actual_value
         });
 
     let target_total: BigRational = &portfolio_total + &amount_to_contribute;
@@ -527,6 +527,7 @@ fn new_lazy_rebalance(
         portfolio_asset.fractional_deviation = Some(fractional_deviation);
     }
 
+    // Sort assets by their fractional deviations in ascending order. That is, from most negative (lowest)
     assets.sort_by(|left, right| {
         let result = asset_comparator(left, right);
 
@@ -537,5 +538,111 @@ fn new_lazy_rebalance(
         }
     });
 
-    return vec![];
+    let (largest_least_deviation, index_to_stop): (BigRational, usize) = {
+        // This is the amount of contribution added to the group of assets with the most negative (lowest) fractional
+        // deviation to the most positive fractional deviation.
+        let mut contribution_added: BigRational = BigRational::zero();
+
+        let mut amount_left_to_contribute: BigRational = amount_to_contribute.clone();
+
+        // The last asset we contribute to will be compared to the largest_least_deviation value.
+        // Fractional deviations (negative or positive) should tend toward zero; which is the ideal value.
+        // A value of zero indicates that the actual_value of the asset is equal to the target_value of the asset.
+        let mut largest_least_deviation: BigRational = BigRational::zero();
+
+        // last_known_index is the index of the last asset in the vector that we're contributing to. Any and all assets
+        // after last_known_index will not be given contributions.
+        let mut last_known_index: Option<usize> = None;
+
+        for (index, portfolio_asset) in assets.iter().enumerate() {
+            //
+
+            if amount_left_to_contribute.abs() <= BigRational::zero() {
+                break;
+            }
+
+            last_known_index = Some(index);
+
+            let fractional_deviation = portfolio_asset
+                .fractional_deviation
+                .as_ref()
+                .unwrap()
+                .clone();
+            let target_value = portfolio_asset.target_value.as_ref().unwrap();
+
+            // We start by identifying the group of assets with the most negative (lowest) fractional deviation values,
+            // i.e., those furthest below their target.
+            //
+            // This group of assets will always be the assets between index 0 and index.
+            // Note that this group of assets will always share the same fractional deviation value.
+            // In addition, this group of assets will already have some contributions given to each them.
+            //
+            // We want to allocate a portion of the contribution to this group of assets; and the goal is to bring their
+            // fractional deviation values close to or equal to the next lowest fractional deviation value among the
+            // remaining assets.
+            let target_aggregate_contribution = &contribution_added + target_value;
+
+            let next_least_deviation = if index >= (assets.len() - 1) {
+                BigRational::zero()
+            } else {
+                assets[index + 1]
+                    .fractional_deviation
+                    .as_ref()
+                    .unwrap()
+                    .clone()
+            };
+
+            // By including the current asset we are considering, we want to allocate the portion of the contribution
+            // such that we reach the target value of target_aggregate_contribution when increasing fractional_deviation
+            // to be equal to next_least_deviation.
+            //
+            // distributed_contribution is this allocated portion of the contribution. distributed_contribution will be
+            // distributed among the group of assets we're contributing to. That is,the assets from indices 0 and index.
+            let distributed_contribution: BigRational =
+                &target_aggregate_contribution * (&next_least_deviation - &fractional_deviation);
+
+            contribution_added = &contribution_added + target_value;
+
+            if distributed_contribution.abs() <= amount_left_to_contribute.abs() {
+                amount_left_to_contribute = amount_left_to_contribute - distributed_contribution;
+                largest_least_deviation = next_least_deviation;
+            } else {
+                // Find next_least_deviation such that:
+                // amount_left_to_contribute = target_aggregate_contribution * (next_least_deviation - fractional_deviation)
+                //
+                // Solving for next_least_deviation:
+                // amount_left_to_contribute / target_aggregate_contribution = next_least_deviation - fractional_deviation
+                // next_least_deviation = amount_left_to_contribute / target_aggregate_contribution + fractional_deviation
+                //
+                // next_least_deviation is the largest_least_deviation value we want.
+                largest_least_deviation = fractional_deviation
+                    + (amount_left_to_contribute / &target_aggregate_contribution);
+                break;
+            }
+        }
+
+        match last_known_index {
+            Some(last_known_index) => {
+                // We contribute to all assets before index_to_stop.
+                let index_to_stop = last_known_index + 1;
+                (largest_least_deviation, index_to_stop)
+            }
+            None => (largest_least_deviation, 0),
+        }
+    };
+
+    for (index, portfolio_asset) in assets.iter_mut().enumerate() {
+        if index >= index_to_stop {
+            break;
+        }
+
+        let target_value = portfolio_asset.target_value.as_ref().unwrap();
+        let fractional_deviation = portfolio_asset.fractional_deviation.as_ref().unwrap();
+
+        let contribution = target_value * (&largest_least_deviation - fractional_deviation);
+
+        portfolio_asset.contribution = Some(contribution);
+    }
+
+    assets
 }
