@@ -220,7 +220,7 @@ pub fn lazy_rebalance(amount_to_contribute: f64, mut assets: Vec<Asset>) -> Vec<
         asset.delta = Some(delta);
     }
 
-    assert!(false);
+    // assert!(false);
 
     assets
 }
@@ -461,7 +461,7 @@ struct NewAsset {
     target_allocation_percent: BigRational,
 }
 
-struct PortfolioAsset {
+pub struct PortfolioAsset {
     asset: NewAsset,
     target_value: Option<BigRational>,
     // Define the difference between each asset's actual value and its intended value after factoring in the new
@@ -479,6 +479,27 @@ struct PortfolioAsset {
     contribution: Option<BigRational>,
 }
 
+pub fn convert_old_portfolio(old_assets: Vec<Asset>) -> Vec<PortfolioAsset> {
+    old_assets
+        .into_iter()
+        .map(|old_asset: Asset| {
+            let asset = NewAsset {
+                name: old_asset.name,
+                actual_value: old_asset.value,
+
+                actual_allocation_percent: old_asset.actual_allocation,
+                target_allocation_percent: old_asset.target_allocation_percent,
+            };
+            PortfolioAsset {
+                asset,
+                target_value: old_asset.target_value,
+                fractional_deviation: old_asset.deviation,
+                contribution: old_asset.delta,
+            }
+        })
+        .collect()
+}
+
 fn asset_comparator(left: &PortfolioAsset, right: &PortfolioAsset) -> Ordering {
     if left.fractional_deviation < right.fractional_deviation {
         return Ordering::Less;
@@ -491,7 +512,7 @@ fn asset_comparator(left: &PortfolioAsset, right: &PortfolioAsset) -> Ordering {
     Ordering::Equal
 }
 
-fn new_lazy_rebalance(
+pub fn new_lazy_rebalance(
     amount_to_contribute: f64,
     mut assets: Vec<PortfolioAsset>,
 ) -> Vec<PortfolioAsset> {
@@ -645,4 +666,87 @@ fn new_lazy_rebalance(
     }
 
     assets
+}
+
+pub fn new_to_string(balanced_portfolio: &Vec<PortfolioAsset>) -> String {
+    let mut buf = "Asset name\tAsset value\tHoldings %\tNew holdings %\tTarget allocation \
+                   %\tTarget value\t$ to buy/sell"
+        .to_string();
+
+    let mut total_asset_value = BigRational::zero();
+    let mut total_current_holdings = BigRational::zero();
+    let mut total_new_holdings = BigRational::zero();
+    let mut total_target_allocation = BigRational::zero();
+    let mut total_target_value = BigRational::zero();
+    let mut total_contribution = 0.0;
+
+    for asset in balanced_portfolio {
+        let delta = match asset.contribution {
+            Some(ref delta) => delta.clone(),
+            None => BigRational::zero(),
+        };
+
+        let target_allocation_percent = if asset.asset.target_allocation_percent
+            <= BigRational::from_f64(1.0).unwrap()
+        {
+            asset.asset.target_allocation_percent.clone() * BigRational::from_f64(100.00).unwrap()
+        } else {
+            asset.asset.target_allocation_percent.clone()
+        };
+
+        let actual_allocation =
+            &asset.asset.actual_allocation_percent * BigRational::from_f64(100.00).unwrap();
+
+        let target_value = &(asset.target_value.clone()).unwrap();
+
+        let final_portion = (&asset.asset.actual_value + &delta)
+            * &asset.asset.target_allocation_percent
+            / target_value;
+
+        let final_portion = &final_portion * BigRational::from_f64(100.00).unwrap();
+
+        // totals
+
+        total_asset_value = total_asset_value + &asset.asset.actual_value;
+        total_current_holdings = total_current_holdings + &actual_allocation;
+        total_new_holdings = total_new_holdings + &final_portion;
+        total_target_allocation = total_target_allocation + &target_allocation_percent;
+        total_target_value = total_target_value + target_value;
+        let actual_delta = (to_f64(&delta) * 100.0).round() / 100.0;
+        total_contribution = total_contribution + actual_delta;
+
+        // generate line
+
+        let line = format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            asset.asset.name,
+            format_f64(to_f64(&asset.asset.actual_value), 2),
+            format_f64(to_f64(&actual_allocation), 3),
+            format_f64(to_f64(&final_portion), 3),
+            format_f64(to_f64(&target_allocation_percent), 3),
+            format_f64(to_f64(&target_value), 2),
+            format_f64(actual_delta, 2)
+        );
+
+        buf = format!("{}\n{}", buf, line);
+    }
+
+    let total_line = format!(
+        "Total\t{}\t{}\t{}\t{}\t{}\t{}",
+        format_f64(to_f64(&total_asset_value), 2),
+        format_f64(to_f64(&total_current_holdings), 3),
+        format_f64(to_f64(&total_new_holdings), 3),
+        format_f64(to_f64(&total_target_allocation), 3),
+        format_f64(to_f64(&total_target_value), 2),
+        format_f64(total_contribution, 2)
+    );
+
+    buf = format!("{}\n{}", buf, total_line);
+
+    let mut tw = TabWriter::new(vec![]);
+
+    tw.write_all(buf.as_bytes()).unwrap();
+    tw.flush().unwrap();
+
+    String::from_utf8(tw.into_inner().unwrap()).unwrap()
 }

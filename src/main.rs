@@ -16,7 +16,10 @@ use clap::{App, AppSettings, Arg};
 
 // local imports
 
-use rebalance::{lazy_rebalance, to_ledger_string, to_string, Asset};
+use rebalance::{
+    convert_old_portfolio, lazy_rebalance, new_lazy_rebalance, new_to_string, to_ledger_string,
+    to_string, Asset,
+};
 
 // app
 
@@ -257,5 +260,31 @@ Total                    100000.00    100.000     100.000         100.000       
         "###.trim();
 
         assert_eq!(to_string(&balanced_portfolio), expected);
+    }
+
+    #[test]
+    fn test_new_example() {
+        let path_to_targets = "example/targets.csv";
+        let path_to_portfolio = "example/portfolio.csv";
+        let contribution_amount = 10000.00;
+        let portfolio_value_index = 1;
+
+        let target_map = create_target_map(path_to_targets);
+
+        let portfolio = create_portfolio(path_to_portfolio, portfolio_value_index, target_map);
+        let portfolio = convert_old_portfolio(portfolio);
+
+        let balanced_portfolio = new_lazy_rebalance(contribution_amount, portfolio);
+
+        let expected = r###"
+Asset name               Asset value  Holdings %  New holdings %  Target allocation %  Target value  $ to buy/sell
+TIPS fund                6500.00      6.500       9.935           10.000               11000.00      4428.57
+Bond fund                16500.00     16.500      19.870          20.000               22000.00      5357.14
+Domestic Stock ETF       43500.00     43.500      39.740          40.000               44000.00      214.29
+International Stock ETF  33500.00     33.500      30.455          30.000               33000.00      0.00
+Total                    100000.00    100.000     100.000         100.000              110000.00     10000.00
+        "###.trim();
+
+        assert_eq!(new_to_string(&balanced_portfolio), expected);
     }
 }
